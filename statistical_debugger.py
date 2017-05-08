@@ -21,13 +21,7 @@ def remove_html_markup(s):
 
     return out
 
-
-# global variable to keep the coverage data in
-coverage = {}
 # Tracing function that saves the coverage data
-# To track function calls, you will have to check 'if event == "return"', and in 
-# that case the variable arg will hold the return value of the function,
-# and frame.f_code.co_name will hold the function name
 def traceit(frame, event, arg):
     global coverage
 
@@ -40,35 +34,12 @@ def traceit(frame, event, arg):
         
     return traceit
 
-# Calculate phi coefficient from given values            
-def phi(n11, n10, n01, n00):
-    return ((n11 * n00 - n10 * n01) / 
-             math.sqrt((n10 + n11) * (n01 + n00) * (n10 + n00) * (n01 + n11)))
 
-# Print out values of phi, and result of runs for each covered line
-def print_tables(tables):
-    for filename in tables.keys():
-        lines = open(filename).readlines()
-        for i in range(23, 40): # lines of the remove_html_markup in this file
-            if tables[filename].has_key(i + 1):
-                (n11, n10, n01, n00) = tables[filename][i + 1]
-                try:
-                    factor = phi(n11, n10, n01, n00)
-                    prefix = "%+.4f%2d%2d%2d%2d" % (factor, n11, n10, n01, n00)
-                except:
-                    prefix = "       %2d%2d%2d%2d" % (n11, n10, n01, n00)
-                    
-            else:
-                prefix = "               "
-                    
-            print prefix, lines[i],
-                            
-# Run the program with each test case and record 
+# Run the program with each test case and record
 # input, outcome and coverage of lines
 def run_tests(inputs):
     runs   = []
     for input in inputs:
-        global coverage
         coverage = {}
         sys.settrace(traceit)
         result = remove_html_markup(input)
@@ -94,6 +65,30 @@ def init_tables(runs):
                     tables[filename][line] = (0, 0, 0, 0)
 
     return tables
+
+# Print out values of phi, and result of runs for each covered line
+def print_tables(tables):
+    for filename in tables.keys():
+        lines = open(filename).readlines()
+        for i in range(23, 40): # lines of the remove_html_markup in this file
+            if tables[filename].has_key(i + 1):
+                (n11, n10, n01, n00) = tables[filename][i + 1]
+                try:
+                    factor = phi(n11, n10, n01, n00)
+                    prefix = "%+.4f%2d%2d%2d%2d" % (factor, n11, n10, n01, n00)
+                except:
+                    prefix = "       %2d%2d%2d%2d" % (n11, n10, n01, n00)
+                    
+            else:
+                prefix = "               "
+                    
+            print prefix, lines[i],
+
+# Calculate phi coefficient from given values            
+def phi(n11, n10, n01, n00):
+    return ((n11 * n00 - n10 * n01) / 
+             math.sqrt((n10 + n11) * (n01 + n00) * (n10 + n00) * (n01 + n11)))
+
 
 # Compute n11, n10, etc. for each line
 def compute_n(tables):
@@ -135,5 +130,4 @@ tables = init_tables(runs)
 
 tables = compute_n(tables)
 
-print_tables(tables)      
-            
+print_tables(tables)            
